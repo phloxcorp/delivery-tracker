@@ -5,7 +5,7 @@
  */
 
 /*!
-  * vue-router v3.0.6
+  * vue-router v3.0.7
   * (c) 2019 Evan You
   * @license MIT
   */
@@ -30,11 +30,9 @@
  */
 
 /*!
- * @overview es6-promise - a tiny implementation of Promises/A+.
- * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
- * @license   Licensed under MIT license
- *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
- * @version   v4.2.6+9869a4bc
+ * vue-no-ssr v1.1.1
+ * (c) 2018-present egoist <0x142857@gmail.com>
+ * Released under the MIT License.
  */
 
 /*! Buefy v0.6.7 | MIT License | github.com/buefy/buefy */
