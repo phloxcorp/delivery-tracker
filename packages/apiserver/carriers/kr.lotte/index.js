@@ -52,7 +52,9 @@ function getTrack(trackId) {
             table.querySelectorAll('tbody > tr').forEach(element => {
               const tds = element.querySelectorAll('td');
               if (tds.length < 4) return;
-              if (tds[1].textContent.indexOf('--:--') !== -1) return;
+              if (tds[1].textContent.indexOf('--:--') !== -1) {
+                tds[1].textContent = tds[1].textContent.replace('--:--', '23:59');
+              }
 
               result.push({
                 status: parseStatus(tds[0].textContent),
