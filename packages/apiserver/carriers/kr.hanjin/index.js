@@ -71,9 +71,11 @@ function getTrack(trackId) {
           progresses: [],
         };
 
-        progressTable.querySelectorAll('tr').forEach(element => {
+        progressTable.querySelectorAll('tr').forEach((element, index) => {
+          if (index === 0) return;
           const insideTd = element.querySelectorAll('th, td');
           // TODO : time 년도 처리 나중에 수정 해야 함 (현재 시간하고 마지막 시간하고 비교해서 마지막 시간이 미래면 작년 껄로 처리)
+          /*
           const curTime = new Date();
           let time = `${curTime.getFullYear()}-${insideTd[0].innerHTML
             .replace('<br>', 'T')
@@ -83,14 +85,16 @@ function getTrack(trackId) {
           if (new Date(time) > curTime) {
             time = `${curTime.getFullYear() - 1}${time.substring(4)}`;
           }
+          */
+          let time = `${insideTd[0].textContent}T${insideTd[1].textContent}:00+09:00`
 
-          shippingInformation.progresses.unshift({
+          shippingInformation.progresses.push({
             time,
             location: {
-              name: insideTd[1].textContent,
+              name: insideTd[2].textContent,
             },
-            status: parseStatus(insideTd[2].textContent),
-            description: insideTd[2].textContent,
+            status: parseStatus(insideTd[3].textContent),
+            description: insideTd[3].textContent.trim(),
           });
         });
 
