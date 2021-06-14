@@ -31,13 +31,14 @@ function getTrack(trackId) {
     }
 
     axios
-      .post(
-        'https://m.hanex.hanjin.co.kr/inquiry/incoming/resultWaybill',
-        qs.stringify({
-          div: 'B',
-          show: 'true',
-          wblNum: trackId,
-        })
+      .get(
+        'https://www.hanjin.co.kr/kor/CMS/DeliveryMgr/WaybillResult.do', {
+          params: {
+            mCode: 'MN038',
+            wblnum: trackId,
+            schLang: 'KR'
+          }
+        }
       )
       .then(res => {
         const dom = new JSDOM(res.data);
