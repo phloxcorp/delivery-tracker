@@ -15,94 +15,70 @@ const STR_TO_STATUS = {
   배달완료: 4,
 };
 
+const notFoundError = {
+  code: 404,
+  message: '해당 운송장의 배송정보를 조회할 수 없습니다.',
+};
+
+function toKST(str) {
+  return `${str}+09:00`;
+}
+
+function toStatus(str) {
+  const statusIdx = STR_TO_STATUS[str];
+  if (statusIdx === undefined) {
+    return STATUS_MAP[2];
+  }
+  return STATUS_MAP[statusIdx];
+}
+
 function getTrack(trackId) {
   return new Promise((resolve, reject) => {
     axios
-      .get('https://www.cvsnet.co.kr/reservation-inquiry/delivery/index.do', {
+      .get('https://www.cvsnet.co.kr/invoice/tracking.do', {
         params: {
-          dlvry_type: 'domestic',
           invoice_no: trackId,
-          srch_type: '01',
         },
       })
       .then(res => {
         const dom = new JSDOM(res.data);
         const { document } = dom.window;
 
-        const information = document.querySelectorAll(
-          '.deliveryInfo3 table td'
-        );
-        const progresses = document.querySelectorAll('.deliveryInfo2 ul li');
-        const state = document.querySelectorAll('.deliveryInfo li');
-        const currentState = document.querySelector('.deliveryInfo li.on');
-
-        if (information.length === 0) {
+        const script = document.querySelector('script:not([type]');
+        if (!script || !script.text) {
+          reject(notFoundError);
+        }
+        const matches = script.text.match(/var trackingInfo = ({.+});/);
+        if (matches.length !== 2) {
+          reject(notFoundError);
+        }
+        const trackingInfo = JSON.parse(matches[1]);
+        if (trackingInfo.code !== 200) {
           reject({
-            code: 404,
-            message: document.querySelector('.noData p').textContent,
+            code: trackingInfo.code,
+            message: trackingInfo.msg,
           });
         }
 
-        return {
-          information,
-          progresses,
-          state,
-          currentState,
-        };
-      })
-      .then(({ information, progresses, state, currentState }) => {
-        const shippingInformation = {
+        resolve({
           from: {
-            name: information[4].innerHTML,
-            time: `${
-              information[2].innerHTML
-            }T${information[3].innerHTML.trim()}:00+09:00`,
-          },
-          to: {
-            name: information[5].innerHTML,
+            name: trackingInfo.sender.name,
             time: null,
           },
-          state: (function getState(s) {
-            let index;
-            s.forEach((e, i) => {
-              if (e === currentState) index = i;
-            });
-            return STATUS_MAP[index];
-          })(state, currentState),
-          progresses: [],
-        };
-
-        progresses.forEach(element => {
-          const time = (function convertTime(t) {
-            return `${t.replace('&nbsp;', 'T')}+09:00`;
-          })(element.querySelector('p.date').innerHTML);
-
-          let status = STATUS_MAP[2];
-          const description = element.querySelector('p.txt').innerHTML;
-          // eslint-disable-next-line no-restricted-syntax
-          for (const key in STR_TO_STATUS) {
-            if (description.includes(key)) {
-              status = STATUS_MAP[STR_TO_STATUS[key]];
-              break;
-            }
-          }
-
-          if (status.id === 'delivered') {
-            shippingInformation.to = {
-              ...shippingInformation.to,
-              time,
+          to: {
+            name: trackingInfo.receiver.name,
+            time: null,
+          },
+          state: toStatus(trackingInfo.latestTrackingDetail.transKind),
+          progresses: trackingInfo.trackingDetails.map(detail => {
+            return {
+              time: toKST(detail.transTime),
+              location: { name: detail.transWhere },
+              status: toStatus(detail.transKind),
+              description: detail.transKind,
             };
-          }
-
-          shippingInformation.progresses.unshift({
-            time,
-            location: { name: element.querySelector('p.location').innerHTML },
-            status,
-            description: element.querySelector('p.txt').innerHTML,
-          });
+          }),
         });
-
-        resolve(shippingInformation);
       })
       .catch(err => reject(err));
   });
@@ -116,5 +92,7 @@ module.exports = {
   getTrack,
 };
 
-// getTrack('6690111396').then(res => console.log(JSON.stringify(res, null, 2))).catch(err => console.error(err))
+// getTrack('363714939373')
+//   .then(res => console.log(JSON.stringify(res, null, 2)))
+//   .catch(err => console.error(err));
 // getTrack('0123456789').then(res => console.log(res)).catch(err=>console.error(err))
