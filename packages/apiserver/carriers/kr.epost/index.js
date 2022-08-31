@@ -34,8 +34,8 @@ function getTrack(trackId) {
         // const informationTable = document.querySelector('.table_col:nth-child(2)')
         // const progressTable = document.querySelector('.table_col:nth-child(1)')
 
-        const $informationTable = $('div.contents .table_col').eq(0);
-        const $progressTable = $('div.contents .table_col').eq(1);
+        const $informationTable = $('#print').find('table');
+        const $progressTable = $('#processTable');
 
         return { $, $informationTable, $progressTable };
       })

@@ -56,11 +56,11 @@ function getTrack(trackId) {
                 tds[1].textContent = tds[1].textContent.replace('--:--', '23:59');
               }
 
-              result.push({
+              result.unshift({
                 status: parseStatus(tds[0].textContent),
                 time: `${tds[1].textContent.replace(/\s+/g, 'T')}:00+09:00`,
                 location: {
-                  name: tds[2].textContent,
+                  name: tds[2].textContent.trim(),
                 },
                 description: tds[3].textContent,
               });
