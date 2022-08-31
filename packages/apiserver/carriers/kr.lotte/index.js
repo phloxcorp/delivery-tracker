@@ -53,7 +53,10 @@ function getTrack(trackId) {
               const tds = element.querySelectorAll('td');
               if (tds.length < 4) return;
               if (tds[1].textContent.indexOf('--:--') !== -1) {
-                tds[1].textContent = tds[1].textContent.replace('--:--', '23:59');
+                tds[1].textContent = tds[1].textContent.replace(
+                  '--:--',
+                  '23:59'
+                );
               }
 
               result.unshift({
@@ -73,28 +76,27 @@ function getTrack(trackId) {
           const errorTd = progressTable.querySelector('tbody > tr > td');
           reject({
             code: 404,
-            message: errorTd ? errorTd.textContent : "화물추적 내역이 없습니다.",
+            message: errorTd
+              ? errorTd.textContent
+              : '화물추적 내역이 없습니다.',
           });
           return;
-        } else {
-          shippingInformation.state =
-            shippingInformation.progresses[
-              shippingInformation.progresses.length - 1
-            ].status;
-          shippingInformation.from.time =
-            shippingInformation.progresses[0].time;
-
-          if (
-            shippingInformation.progresses[
-              shippingInformation.progresses.length - 1
-            ].status.id === 'delivered'
-          )
-            shippingInformation.to.time =
-              shippingInformation.progresses[
-                shippingInformation.progresses.length - 1
-              ].time;
         }
-
+        shippingInformation.state =
+          shippingInformation.progresses[
+            shippingInformation.progresses.length - 1
+          ].status;
+        shippingInformation.from.time = shippingInformation.progresses[0].time;
+        if (
+          shippingInformation.progresses[
+            shippingInformation.progresses.length - 1
+          ].status.id === 'delivered'
+        ) {
+          shippingInformation.to.time =
+            shippingInformation.progresses[
+              shippingInformation.progresses.length - 1
+            ].time;
+        }
         resolve(shippingInformation);
       })
       .catch(err => reject(err));
@@ -108,3 +110,7 @@ module.exports = {
   },
   getTrack,
 };
+
+// getTrack('309118240012')
+//   .then(r => console.log(JSON.stringify(r, null, 2)))
+//   .catch(err => console.log(err));

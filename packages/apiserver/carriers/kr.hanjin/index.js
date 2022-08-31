@@ -1,7 +1,6 @@
 const axios = require('axios');
 const { Iconv } = require('iconv');
 const { JSDOM } = require('jsdom');
-const qs = require('querystring');
 
 const iconv = new Iconv('EUC-KR', 'UTF-8//TRANSLIT//IGNORE');
 
@@ -38,18 +37,18 @@ function getTrack(trackId) {
         params: {
           w_num: trackId,
         },
-        responseType: 'arraybuffer'
+        responseType: 'arraybuffer',
       })
       .then(res => {
         const dom = new JSDOM(iconv.convert(res.data).toString());
 
         const tit = dom.window.document.querySelector('.tit-sec');
-        if(tit) {
+        if (tit) {
           const message = tit.textContent.trim();
-          if (message.indexOf("운송장이 등록되지 않") !== -1) {
+          if (message.indexOf('운송장이 등록되지 않') !== -1) {
             return reject({
               code: 404,
-              message: message,
+              message,
             });
           }
         }
@@ -58,7 +57,6 @@ function getTrack(trackId) {
         return { informationTable: tables[0], progressTable: tables[1] };
       })
       .then(({ informationTable, progressTable }) => {
-
         const td = informationTable.querySelectorAll('td');
         const shippingInformation = {
           from: {
@@ -78,27 +76,31 @@ function getTrack(trackId) {
 
         const { progresses } = shippingInformation;
 
-        progressTable.querySelector('tbody').querySelectorAll('tr').forEach(element => {
-          const insideTd = element.querySelectorAll('td');
-          const date = insideTd[0].textContent; // insideTd[0] - 날짜 (ex. 2021-04-13)
-          const time = insideTd[1].textContent; // insideTd[1] - 시간 (ex. 10:37)
-          const address = insideTd[2].textContent; // insideTd[2] - 위치
-          const description = insideTd[3].textContent.trim();// insideTd[3] - 설명
-          const timeSet = `${date}T${time}:00+09:00`;
-          
-          progresses.unshift({
-            time: timeSet,
-            location: {
-              name: address,
-            },
-            status: parseStatus(description),
-            description: description,
+        progressTable
+          .querySelector('tbody')
+          .querySelectorAll('tr')
+          .forEach(element => {
+            const insideTd = element.querySelectorAll('td');
+            const date = insideTd[0].textContent; // insideTd[0] - 날짜 (ex. 2021-04-13)
+            const time = insideTd[1].textContent; // insideTd[1] - 시간 (ex. 10:37)
+            const address = insideTd[2].textContent; // insideTd[2] - 위치
+            const description = insideTd[3].textContent.trim(); // insideTd[3] - 설명
+            const timeSet = `${date}T${time}:00+09:00`;
+
+            progresses.unshift({
+              time: timeSet,
+              location: {
+                name: address,
+              },
+              status: parseStatus(description),
+              description,
+            });
           });
-        });
 
         if (progresses.length > 0) {
           shippingInformation.state = progresses[0].status;
-          shippingInformation.from.time = progresses[progresses.length - 1].time;
+          shippingInformation.from.time =
+            progresses[progresses.length - 1].time;
           if (progresses[0].status.id === 'delivered')
             shippingInformation.to.time = progresses[0].time;
         } else {
@@ -121,3 +123,7 @@ module.exports = {
   },
   getTrack,
 };
+
+// getTrack('450746973294')
+//   .then(r => console.log(JSON.stringify(r, null, 2)))
+//   .catch(err => console.log(err));
