@@ -76,3 +76,4 @@ package-lock.json
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
 .history
+.tool-versions

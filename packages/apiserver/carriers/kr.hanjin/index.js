@@ -1,8 +1,9 @@
 const axios = require('axios');
-const { Iconv } = require('iconv');
+// const { Iconv } = require('iconv');
 const { JSDOM } = require('jsdom');
+const { URLSearchParams } = require('url');
 
-const iconv = new Iconv('EUC-KR', 'UTF-8//TRANSLIT//IGNORE');
+// const iconv = new Iconv('EUC-KR', 'UTF-8//TRANSLIT//IGNORE');
 
 function parseStatus(s) {
   if (s.includes('집하')) return { id: 'at_pickup', text: '상품인수' };
@@ -33,14 +34,21 @@ function getTrack(trackId) {
     }
 
     axios
-      .get('http://www.hanjinexpress.hanjin.net/customer/hddcw18.tracking', {
-        params: {
-          w_num: trackId,
-        },
-        responseType: 'arraybuffer',
-      })
+      .post(
+        'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do',
+        new URLSearchParams({
+          wblnum: trackId,
+          mCode: 'MN038',
+          schLang: 'KR',
+        }).toString(),
+        {
+          headers: [['content-type', 'application/x-www-form-urlencoded']],
+          responseType: 'arraybuffer',
+        }
+      )
       .then(res => {
-        const dom = new JSDOM(iconv.convert(res.data).toString());
+        // const dom = new JSDOM(iconv.convert(res.data).toString());
+        const dom = new JSDOM(res.data);
 
         const tit = dom.window.document.querySelector('.tit-sec');
         if (tit) {
